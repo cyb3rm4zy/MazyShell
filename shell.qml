@@ -1,0 +1,36 @@
+//pragma Env QSG_RENDER_LOOP=threaded
+//@ pragma UseQApplication
+import Quickshell
+import QtQuick
+
+import qs.config
+import qs.services as S
+import qs.modules.bar
+import qs.modules.sidebar
+import qs.modules.edge
+import qs.modules.wallpaper
+
+ShellRoot {
+
+    Config { id: cfg }
+
+    Variants {
+        model: Quickshell.screens
+
+        Scope {
+            required property var modelData
+
+            S.SidebarState { id: state; config: cfg }
+            WallpaperWindow { config: cfg; screenRef: modelData }
+
+            Bar { config: cfg; sidebarState: state; screen: modelData }
+
+            Sidebar { config: cfg; sidebarState: state; screen: modelData }
+
+            EdgeCorner { config: cfg; sidebarState: state; screen: modelData }
+            EdgeCornerBottom { config: cfg; sidebarState: state; screen: modelData }
+            OppositeTopCorner { config: cfg; screen: modelData }
+            
+        }
+    }
+}
