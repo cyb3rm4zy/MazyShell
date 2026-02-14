@@ -27,24 +27,14 @@ A powerful yet simple UI overlay made for Hyprland &amp; Niri using Quickshell
 - xdgdesktopportal
 ## Clone Repo
 1. Create new quickshell directory:
-```
-mkdir ~/.config/quickshell
-```
+`mkdir ~/.config/quickshell`
 2. Move into directory:
-```
-cd ~/.config/quickshell
-```
+`cd ~/.config/quickshell`
 3. Clone the repo:
-```
-git clone https://github.com/cyb3rm4zy/MazyShell.git
-```
+`git clone https://github.com/cyb3rm4zy/MazyShell.git`
 4. Run quickshell with MazyShell config:
-```
-QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell
-```
+`QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
 5. Add to hyprland config:
-```
-exec-once = QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell
-```
+`exec-once = QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
 # Arch Niri Installation
 ## Install Dependencies
