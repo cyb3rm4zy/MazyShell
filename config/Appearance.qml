@@ -1,7 +1,7 @@
 import QtQuick
 
 QtObject {
-    required property QtObject cfg  // ConfigService
+    required property QtObject cfg
 
     property color bg: cfg.bg
     property color bg2: cfg.bg2
@@ -11,7 +11,6 @@ QtObject {
     property color muted: cfg.muted
     property color text: cfg.text
 
-    // convenience alias you already use
     property color red: cfg.accent
 
     property real opacity: cfg.opacity

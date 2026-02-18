@@ -46,7 +46,6 @@ FocusScope {
 
     function shQuote(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
 
-    // ---------- refresh scheduling (NO idle polling) ----------
     Timer {
         id: refreshTimer
         interval: 120
@@ -55,7 +54,6 @@ FocusScope {
     }
     function refreshSoon() { refreshTimer.restart() }
 
-    // bounded scan refresh loop (only while scanning)
     property int scanTicksLeft: 0
     Timer {
         id: scanTick
@@ -70,7 +68,6 @@ FocusScope {
         }
     }
 
-    // ---------- model helpers (NO clear/rebuild during hover) ----------
     function modelIndexByMac(model, mac) {
         for (var i = 0; i < model.count; i++) {
             if (model.get(i).mac === mac) return i
@@ -120,10 +117,9 @@ FocusScope {
 
     function clearDiscovered() {
         root._foundMap = ({})
-        foundModel.clear() // Scan Off clears
+        foundModel.clear()
     }
 
-    // ---------- helper: parse action error ----------
     function formatBtError(outText, ec) {
         var msg = (outText || "").trim()
         msg = msg.replace(/\n?__EC:\d+\s*$/m, "").trim()
@@ -133,7 +129,6 @@ FocusScope {
         return lines.length ? lines[lines.length - 1] : msg
     }
 
-    // ---------- action runner ----------
     Process { id: cleanupProc }
     function runCleanup(cmd) {
         cleanupProc.command = ["sh", "-lc", cmd + " >/dev/null 2>&1 || true" ]
@@ -155,10 +150,8 @@ FocusScope {
         actionProc.exec(actionProc.command)
     }
 
-    // long-lived discovery session (kept alive while scanning)
     Process { id: scanProc }
 
-    // ---------- state actions ----------
     function refresh() {
         if (root.actionRunning) return
         statusProc.exec(statusProc.command)
@@ -167,7 +160,6 @@ FocusScope {
     function setPower(on) {
         if (root.actionRunning) return
 
-        // optimistic UI
         root.powered = on
         root.lastError = ""
 
@@ -190,7 +182,6 @@ FocusScope {
         root.lastError = ""
 
         if (on) {
-            // keep discovery alive
             scanProc.command = ["sh", "-lc", root.btctlPath + " scan on >/dev/null 2>&1 || true"]
             scanProc.exec(scanProc.command)
 
@@ -210,7 +201,6 @@ FocusScope {
     function connectOrDisconnect(mac, isConnected) {
         if (!root.powered || root.actionRunning) return
 
-        // optimistic flip
         var idx = modelIndexByMac(pairedModel, mac)
         if (idx >= 0) pairedModel.setProperty(idx, "connected", !isConnected)
 
@@ -228,7 +218,6 @@ FocusScope {
         refreshSoon()
     }
 
-    // ---------- UI ----------
     Rectangle {
         id: box
         width: parent ? parent.width : root.implicitWidth
@@ -335,7 +324,6 @@ FocusScope {
                 }
             }
 
-            // Paired
             Item {
                 width: parent.width
                 height: (pairedModel.count > 0) ? (pairedHeader.implicitHeight + pairedBox.height + 10) : 0
@@ -407,7 +395,6 @@ FocusScope {
                 }
             }
 
-            // Discovered (expands fully)
             Rectangle {
                 id: discoveredShell
                 width: parent.width
@@ -505,7 +492,6 @@ FocusScope {
         }
     }
 
-    // ---------- processes ----------
     Process {
         id: actionProc
         stdout: StdioCollector {

@@ -1,7 +1,7 @@
 import QtQuick
 
 QtObject {
-    required property QtObject cfg  // ConfigService
+    required property QtObject cfg
 
     property string edge: cfg.edge
     property int edgeWidth: cfg.edgeWidth

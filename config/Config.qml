@@ -4,10 +4,8 @@ import "../services" as S
 QtObject {
     id: root
 
-    // Persistent config service
     property S.ConfigService cfg: S.ConfigService {}
 
-    // Back-compat: your code reads config.appearance.X etc
     property QtObject appearance: QtObject {
         property color bg: cfg.bg
         property color bg2: cfg.bg2
@@ -45,9 +43,8 @@ QtObject {
         property var rightModules: cfg.rightModules
 
         function setEnabled(section, k, on) { cfg.setBarEnabled(section, k, on) }
-        function setBarEnabled(section, k, on) { cfg.setBarEnabled(section, k, on) } // (if you call this name elsewhere)
+        function setBarEnabled(section, k, on) { cfg.setBarEnabled(section, k, on) }
     }
 
-    // ✅ RESTORE wallpapers service so config.wallpapers.* exists again
     property S.Wallpapers wallpapers: S.Wallpapers {}
 }

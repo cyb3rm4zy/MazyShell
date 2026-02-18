@@ -5,18 +5,14 @@ import Quickshell
 QtObject {
     id: root
 
-    // Paths
     property string cfgPath: "$HOME/.config/quickshell/MazyShell/config.json"
     property string ctlPath: "$HOME/.config/quickshell/MazyShell/scripts/configctl.sh"
 
-    // Backing object loaded from disk
     property var data: ({})
     property bool loaded: false
 
-    // Guard to avoid writing while we are applying loaded values
     property bool hydrating: false
 
-    // ---------------- Debounced persistence ----------------
     property Timer saveTimer: Timer {
         interval: 150
         repeat: false
@@ -32,7 +28,6 @@ QtObject {
         return "'" + String(s).replace(/'/g, "'\\''") + "'"
     }
 
-    // Load JSON via backend
     property Process loadProc: Process {
         command: ["sh", "-lc", root.ctlPath + " dump"]
         stdout: StdioCollector {
@@ -63,7 +58,6 @@ QtObject {
         loadProc.exec(loadProc.command)
     }
 
-    // Persist whole object (overwrite)
     property Process saveProc: Process {
         stderr: StdioCollector {
             waitForEnd: true
@@ -78,12 +72,10 @@ QtObject {
         if (!loaded || hydrating) return
         const payload = JSON.stringify(root.data)
 
-        // Overwrite config.json (no merge edge cases)
         saveProc.command = ["sh", "-lc", root.ctlPath + " write " + quoteForShell(payload)]
         saveProc.exec(saveProc.command)
     }
 
-    // Restore defaults (overwrite config.json), then reload+rehydrate
     property Process resetProc: Process {
         stderr: StdioCollector {
             waitForEnd: true
@@ -102,7 +94,6 @@ QtObject {
         resetProc.exec(resetProc.command)
     }
 
-    // ---------------- Helpers ----------------
     function get(pathArr, fallback) {
         var cur = root.data
         for (var i = 0; i < pathArr.length; i++) {
@@ -122,16 +113,14 @@ QtObject {
             cur = cur[k]
         }
         cur[pathArr[pathArr.length - 1]] = value
-        root.data = root.data // notify
+        root.data = root.data
         scheduleSave()
     }
 
     function applyLoaded(obj) {
-        // Hydrate typed props from loaded JSON in one pass
         hydrating = true
         root.data = (obj && typeof obj === "object") ? obj : ({})
 
-        // ---- Appearance ----
         bg          = String(get(["appearance","bg"], "#0B0B0B"))
         bg2         = String(get(["appearance","bg2"], "#1A1A1A"))
         fg          = String(get(["appearance","fg"], "#E6E6E6"))
@@ -147,7 +136,6 @@ QtObject {
         radius    = parseInt(get(["appearance","radius"], 12), 10)
         animMs    = parseInt(get(["appearance","animMs"], 40), 10)
 
-        // ---- Sidebar ----
         edge              = String(get(["sidebar","edge"], "left")).trim().toLowerCase()
         edgeWidth         = parseInt(get(["sidebar","edgeWidth"], 8), 10)
         edgeCornerRadius  = parseInt(get(["sidebar","edgeCornerRadius"], 20), 10)
@@ -157,7 +145,6 @@ QtObject {
         const ebs = get(["sidebar","edgeByScreen"], ({}))
         edgeByScreen = (ebs && typeof ebs === "object") ? ebs : ({})
 
-        // ---- Bar ----
         const lm = get(["bar","leftModules"], [])
         const cm = get(["bar","centerModules"], [])
         const rm = get(["bar","rightModules"], [])
@@ -170,9 +157,6 @@ QtObject {
         loaded = true
     }
 
-    // ---------------- Public typed properties ----------------
-
-    // Appearance
     property string bg: "#0B0B0B"
     property string bg2: "#1A1A1A"
     property string fg: "#E6E6E6"
@@ -203,7 +187,6 @@ QtObject {
     onRadiusChanged:    if (loaded && !hydrating) setPath(["appearance","radius"], radius)
     onAnimMsChanged:    if (loaded && !hydrating) setPath(["appearance","animMs"], animMs)
 
-    // Sidebar
     property string edge: "left"
     property int edgeWidth: 8
     property int edgeCornerRadius: 20
@@ -218,7 +201,6 @@ QtObject {
     onHoverCloseDelayMsChanged: if (loaded && !hydrating) setPath(["sidebar","hoverCloseDelayMs"], hoverCloseDelayMs)
     onEdgeByScreenChanged:      if (loaded && !hydrating) setPath(["sidebar","edgeByScreen"], edgeByScreen)
 
-    // Bar modules
     property var leftModules: []
     property var centerModules: []
     property var rightModules: []

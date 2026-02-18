@@ -28,20 +28,12 @@ Item {
 
     function shQuote(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
 
-    // ----------------------------
-    // State
-    // ----------------------------
-
-    // Brightness displayed as 0..1
     property real brightness01: 1
 
-    // If no brightness device exists, we disable the slider
     property bool brightnessAvailable: true
 
-    // Blue light filter state (hyprsunset running)
     property bool blueLightOn: false
 
-    // hyprsunset tuning
     property int hyprsunsetTemperature: 3600
 
     function _clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -52,15 +44,10 @@ Item {
 
     function releasePanelHover() { }
 
-    // ----------------------------
-    // Brightness control (now via visualctl.sh)
-    // ----------------------------
-
     function setBrightnessPct(v01) {
-        var vv = _clamp(v01, 0.01, 1.0) // avoid going fully black
+        var vv = _clamp(v01, 0.01, 1.0)
         var pct = Math.round(vv * 100)
 
-        // visualctl.sh set brightness <pct>
         runner.command = ["sh", "-lc", root.ctl + " set brightness " + String(pct) + " >/dev/null 2>&1 || true"]
         runner.exec(runner.command)
 
@@ -68,24 +55,14 @@ Item {
     }
 
     function refreshBrightness() {
-        // visualctl.sh status_brightness -> emits:
-        //   BRIGHT_AVAIL|0|1
-        //   BRIGHT_PCT|<0-100>
         brightProc.exec(brightProc.command)
     }
 
-    // ----------------------------
-    // Blue light filter (hyprsunset) via visualctl.sh
-    // ----------------------------
-
     function refreshBlueLightState() {
-        // visualctl.sh status_bluelight -> emits:
-        //   BLUELIGHT|0|1
         hyprsunsetCheckProc.exec(hyprsunsetCheckProc.command)
     }
 
     function startBlueLight() {
-        // visualctl.sh blue on <temp>
         hyprsunsetStartProc.command = ["sh", "-lc",
             root.ctl + " blue on " + String(root.hyprsunsetTemperature) + " >/dev/null 2>&1 || true"
         ]
@@ -94,7 +71,6 @@ Item {
     }
 
     function stopBlueLight() {
-        // visualctl.sh blue off
         runner.command = ["sh", "-lc", root.ctl + " blue off >/dev/null 2>&1 || true"]
         runner.exec(runner.command)
         _refreshSoon()
@@ -105,20 +81,12 @@ Item {
         else startBlueLight()
     }
 
-    // ----------------------------
-    // Refresh scheduling
-    // ----------------------------
-
     function refreshAll() {
         refreshBrightness()
         refreshBlueLightState()
     }
 
     function _refreshSoon() { refreshTimer.restart() }
-
-    // ----------------------------
-    // UI
-    // ----------------------------
 
     Rectangle {
         id: box
@@ -144,7 +112,6 @@ Item {
                 font.pixelSize: 13
             }
 
-            // Brightness slider row
             ValueSlider {
                 width: parent.width
                 label: "Brightness"
@@ -161,7 +128,6 @@ Item {
                 }
             }
 
-            // Blue light toggle row
             Item {
                 width: parent.width
                 height: root.rowH
@@ -170,7 +136,6 @@ Item {
                     anchors.fill: parent
                     spacing: 8
 
-                    // Icon
                     Text {
                         width: 20
                         height: parent.height
@@ -180,7 +145,6 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                     }
 
-                    // Toggle pill
                     Rectangle {
                         height: parent.height
                         width: parent.width - 28
@@ -238,9 +202,6 @@ Item {
         }
     }
 
-    // ----------------------------
-    // Shared slider component (unchanged)
-    // ----------------------------
     component ValueSlider: Item {
         id: s
 
@@ -367,13 +328,8 @@ Item {
         }
     }
 
-    // ----------------------------
-    // Processes
-    // ----------------------------
-
     Process { id: runner }
 
-    // brightness status via visualctl.sh
     Process {
         id: brightProc
         command: ["sh", "-lc", root.ctl + " status_brightness"]
@@ -423,7 +379,6 @@ Item {
         }
     }
 
-    // blue light running check via visualctl.sh
     Process {
         id: hyprsunsetCheckProc
         command: ["sh", "-lc", root.ctl + " status_bluelight"]
@@ -448,7 +403,6 @@ Item {
         }
     }
 
-    // start hyprsunset (command set dynamically)
     Process {
         id: hyprsunsetStartProc
         stdout: StdioCollector { waitForEnd: false }

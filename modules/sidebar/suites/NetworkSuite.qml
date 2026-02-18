@@ -89,7 +89,6 @@ FocusScope {
     }
     function _refreshSoon() { refreshTimer.restart() }
 
-    // bounded scan refresh loop (only while scanning)
     property int scanTicksLeft: 0
     Timer {
         id: scanTick
@@ -107,7 +106,6 @@ FocusScope {
     function setWifiPower(on) {
         if (!root.nmcliOk) return
 
-        // optimistic UI
         root.uiWifiPowered = on
         if (!on) {
             root.scanning = false
@@ -136,7 +134,6 @@ FocusScope {
     function disconnectActiveWifi() {
         if (!root.canDisconnectWifi || root.connectBusy) return
 
-        // optimistic UI
         root.uiActiveType = "none"
         root.uiActiveLabel = ""
         root.uiActiveWifiDevice = ""
@@ -161,7 +158,6 @@ FocusScope {
 
         scanStopTimer.restart()
 
-        // bounded refreshes during scan (no idle polling)
         root.scanTicksLeft = Math.ceil(root.scanDurationMs / scanTick.interval)
         scanTick.start()
 
@@ -175,7 +171,6 @@ FocusScope {
         _refreshSoon()
     }
 
-    // ---------- connect execution ----------
     StdioCollector {
         id: connectOut
         waitForEnd: true
@@ -207,7 +202,6 @@ FocusScope {
                 return
             }
 
-            // rollback optimistic UI on failure
             root.applyUiFromMachine()
 
             if (ec === -1 && msg.length === 0) {
@@ -242,7 +236,6 @@ FocusScope {
         root.connectBusy = true
         root.connectError = ""
 
-        // optimistic UI
         root.uiActiveType = "wifi"
         root.uiActiveLabel = root.selectedSsid
         root.uiActiveWifiDevice = root.wifiIf
@@ -756,7 +749,6 @@ FocusScope {
                         var sig = Number(parts[4] || 0)
                         if (!ssid.length) continue
 
-                        // de-dupe by SSID
                         var idx = -1
                         for (var k = 0; k < newAps.length; k++) {
                             if (newAps[k].ssid === ssid) { idx = k; break }

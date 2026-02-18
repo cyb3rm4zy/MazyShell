@@ -278,12 +278,10 @@ PanelWindow {
         const query = searchQuery.toLowerCase().trim()
         
         if (!query.length) {
-            // Show all apps when no search
             for (let i = 0; i < appModel.count; i++) {
                 filteredModel.append(appModel.get(i))
             }
         } else {
-            // Filter by name or keywords
             for (let i = 0; i < appModel.count; i++) {
                 const app = appModel.get(i)
                 const name = (app.name || "").toLowerCase()
@@ -298,15 +296,11 @@ PanelWindow {
             }
         }
         
-        // Reset selection and scroll to top
         selectedIndex = 0
-        // Reset scroll immediately
         appFlickable.contentY = 0
-        // Also reset after a brief delay to ensure it sticks (for hyprland timing issues)
         if (filteredModel.count > 0) {
             Qt.callLater(function() {
                 appFlickable.contentY = 0
-                // Double-check after another frame
                 Qt.callLater(function() {
                     appFlickable.contentY = 0
                 })
@@ -314,7 +308,6 @@ PanelWindow {
         }
     }
 
-    // Load applications from desktop files
     Process {
         id: appLoader
         command: ["sh", "-lc",

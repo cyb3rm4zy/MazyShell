@@ -1,7 +1,7 @@
 import QtQuick
 
 QtObject {
-    required property QtObject cfg // ConfigService
+    required property QtObject cfg
 
     property var leftModules: cfg.leftModules
     property var centerModules: cfg.centerModules

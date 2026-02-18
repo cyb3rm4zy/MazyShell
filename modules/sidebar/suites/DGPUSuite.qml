@@ -48,18 +48,14 @@ Item {
     function refresh() { statusProc.exec(statusProc.command) }
 
     function runAction(args) {
-        // args: string (already shell-safe if we quote properly)
         runner.command = ["sh", "-lc", root.ctl + " " + args + " >/dev/null 2>&1 || true"]
         runner.exec(runner.command)
     }
 
-    // Switch modes (these actions intentionally log you out to apply)
     function setIntegratedLogout() {
         if (!root.ok) return
-        // optimistic UI
         root.uiMode = "Integrated"
         runAction("set_logout integrated")
-        // no refresh needed; you're logging out
     }
 
     function setHybridLogout() {

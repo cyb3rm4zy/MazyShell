@@ -1,5 +1,3 @@
-//pragma Env QSG_RENDER_LOOP=threaded
-//@ pragma UseQApplication
 import Quickshell
 import QtQuick
 

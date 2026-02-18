@@ -20,16 +20,13 @@ case "$cmd" in
     ;;
 
   merge)
-    # usage: merge '<json_object>'
     patch="${1:-}"; [ -n "$patch" ] || die "usage: merge <json_object>"
 
-    # Validate JSON and require an object (not array/number/string)
     echo "$patch" | jq -e 'type == "object"' >/dev/null \
       || die "merge payload must be a JSON object"
 
     tmp="$(mktemp "${CFG}.XXXXXX")"
 
-    # Slurp inputs into array: [CFG, PATCH]
     jq -S -s '.[0] * .[1]' \
       "$CFG" <(printf '%s' "$patch") > "$tmp"
 
@@ -37,7 +34,6 @@ case "$cmd" in
     ;;
 
   write)
-    # usage: write '<json_object>'  (overwrites config.json)
     payload="${1:-}"; [ -n "$payload" ] || die "usage: write <json_object>"
     echo "$payload" | jq -e 'type == "object"' >/dev/null \
       || die "write payload must be a JSON object"

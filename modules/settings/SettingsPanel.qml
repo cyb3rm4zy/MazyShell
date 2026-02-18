@@ -28,7 +28,6 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    // Theme (panel styling)
     readonly property var app: (config && config.appearance) ? config.appearance : null
     readonly property color bg:          (app && app.bg          !== undefined && app.bg          !== null) ? app.bg          : "#121212"
     readonly property color bg2:         (app && app.bg2         !== undefined && app.bg2         !== null) ? app.bg2         : "#1A1A1A"
@@ -39,23 +38,17 @@ PanelWindow {
     readonly property int radius:        (app && app.radius !== undefined) ? app.radius : 14
     readonly property int pad:           (app && app.pad !== undefined) ? app.pad : 16
 
-    // ConfigService
     readonly property QtObject cfg: (config && config.cfg) ? config.cfg : null
 
-    // Anim
     property real contentOpacity: 0
     property real contentScale: 0.92
 
     Behavior on contentOpacity { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
     Behavior on contentScale   { NumberAnimation { duration: 170; easing.type: Easing.OutCubic } }
 
-    // Tabs
-    property int tabIndex: 0 // 0=Appearance, 1=Sidebar, 2=Modules
+    property int tabIndex: 0
 
-    // ---------------- Theme presets ----------------
-    // Dark (Default) = your Appearance.qml defaults (constant, not snapshot)
-    // Light = light palette with the same red accent
-    property int themeIndex: 0 // 0 dark, 1 light
+    property int themeIndex: 0
 
     readonly property var darkPreset: ({
         bg: "#0B0B0B",
@@ -123,13 +116,11 @@ PanelWindow {
         scale: settings.contentScale
         transformOrigin: Item.Center
 
-        // Click outside to close
         MouseArea {
             anchors.fill: parent
             onClicked: settings.close()
         }
 
-        // Card container
         Item {
             anchors.fill: parent
 
@@ -143,7 +134,6 @@ PanelWindow {
                 border.width: 1
             }
 
-            // Eat clicks inside
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.AllButtons
@@ -156,7 +146,6 @@ PanelWindow {
                 anchors.margins: settings.pad
                 spacing: 14
 
-                // Header
                 Rectangle {
                     Layout.fillWidth: true
                     height: 52
@@ -192,13 +181,11 @@ PanelWindow {
                     }
                 }
 
-                // Body: left tabs + right content
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     spacing: 12
 
-                    // ---- Left vertical tabs ----
                     Rectangle {
                         Layout.preferredWidth: 180
                         Layout.fillHeight: true
@@ -273,7 +260,6 @@ PanelWindow {
                         }
                     }
 
-                    // ---- Right content ----
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
@@ -288,9 +274,6 @@ PanelWindow {
                             anchors.margins: 14
                             currentIndex: settings.tabIndex
 
-                            // =========================
-                            // Page 0: Appearance
-                            // =========================
                             Item {
                                 ColumnLayout {
                                     anchors.fill: parent
@@ -397,9 +380,6 @@ PanelWindow {
                                 }
                             }
 
-                            // =========================
-                            // Page 1: Sidebar
-                            // =========================
                             Item {
                                 ColumnLayout {
                                     anchors.fill: parent
@@ -470,9 +450,6 @@ PanelWindow {
                                 }
                             }
 
-                            // =========================
-                            // Page 2: Modules
-                            // =========================
                             Item {
                                 ColumnLayout {
                                     anchors.fill: parent

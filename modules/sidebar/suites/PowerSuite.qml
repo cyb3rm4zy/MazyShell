@@ -93,7 +93,6 @@ Item {
                     var line = (lines[i] || "").trim()
                     if (!line.length) continue
 
-                    // TAG|VALUE
                     var parts = line.split("|")
                     var tag = parts[0]
                     var val = (parts.slice(1).join("|") || "").trim()
