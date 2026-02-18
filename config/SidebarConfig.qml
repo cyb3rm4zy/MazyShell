@@ -1,20 +1,17 @@
 import QtQuick
 
 QtObject {
+    required property QtObject cfg  // ConfigService
 
-    property string edge: "left"
+    property string edge: cfg.edge
+    property int edgeWidth: cfg.edgeWidth
+    property int edgeCornerRadius: cfg.edgeCornerRadius
+    property int sidebarWidth: cfg.sidebarWidth
+    property int hoverCloseDelayMs: cfg.hoverCloseDelayMs
 
-    property int edgeWidth: 8
+    property var edgeByScreen: cfg.edgeByScreen
 
-    property int edgeCornerRadius: 20
-
-    property int sidebarWidth: 300
-
-    property int hoverCloseDelayMs: 300
-
-    property var edgeByScreen: ({ "DP-2": "right", "DP-3": "left"})
     function edgeForScreen(screenName) {
-        const v = edgeByScreen[screenName]
-        return (v === "left" || v === "right") ? v : edge
+        return cfg.edgeForScreen(screenName)
     }
 }

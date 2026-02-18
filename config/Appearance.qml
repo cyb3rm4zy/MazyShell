@@ -1,24 +1,25 @@
 import QtQuick
-import "."
 
 QtObject {
+    required property QtObject cfg  // ConfigService
 
-    property color bg: "#0B0B0B"
-    property color bg2: "#1A1A1A"
-    property color fg: "#E6E6E6"
-    property color accent: "#B80000"
-    property color borderColor: "#2A2A2A"
-    property color muted: "#A8A8A8"
-    property color text: "#E6E6E6"
+    property color bg: cfg.bg
+    property color bg2: cfg.bg2
+    property color fg: cfg.fg
+    property color accent: cfg.accent
+    property color borderColor: cfg.borderColor
+    property color muted: cfg.muted
+    property color text: cfg.text
 
-    property color red: "#B80000"
+    // convenience alias you already use
+    property color red: cfg.accent
 
-    property real opacity: 1
+    property real opacity: cfg.opacity
 
-    property int barHeight: 35
-    property int pad: 20
-    property int fontSize: 12
-    property int radius: 12
+    property int barHeight: cfg.barHeight
+    property int pad: cfg.pad
+    property int fontSize: cfg.fontSize
+    property int radius: cfg.radius
 
-    property int animMs: 40
+    property int animMs: cfg.animMs
 }

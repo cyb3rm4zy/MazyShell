@@ -4,6 +4,7 @@ import QtQuick.Dialogs
 
 import "suites"
 import qs.modules.launcher
+import qs.modules.settings
 
 Item {
     id: root
@@ -15,8 +16,6 @@ Item {
     readonly property int pad: (config && config.appearance && config.appearance.pad !== undefined)
         ? config.appearance.pad
         : 12
-
-    
 
     readonly property int outsidePadLeft:  5
     readonly property int insidePadLeft:   14
@@ -62,9 +61,7 @@ Item {
     AppLauncher {
         id: launcher
         visible: false
-
         screen: root.screen
-
         bg: (root.config && root.config.appearance && root.config.appearance.bg)
             ? root.config.appearance.bg : "#121212"
         bg2: (root.config && root.config.appearance && root.config.appearance.bg2)
@@ -75,6 +72,13 @@ Item {
             ? (root.config.appearance.fg ?? root.config.appearance.text) : "#E6E6E6"
         borderColor: (root.config && root.config.appearance && (root.config.appearance.borderColor ?? root.config.appearance.border))
             ? (root.config.appearance.borderColor ?? root.config.appearance.border) : "#2A2A2A"
+    }
+
+    SettingsPanel {
+        id: settingsPanel
+        visible: false
+        screen: root.screen
+        config: root.config
     }
 
     Flickable {
@@ -106,6 +110,7 @@ Item {
                 config: root.config
                 onRequestWallpaper: wallpaperDialog.open()
                 onRequestAppLauncher: launcher.visible = !launcher.visible
+                onRequestSettings: settingsPanel.toggle()
             }
 
             VisualSuite    { width: col.width; config: root.config; sidebarState: root.sidebarState }

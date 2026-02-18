@@ -7,6 +7,7 @@ Item {
 
     signal requestWallpaper()
     signal requestAppLauncher()
+    signal requestSettings()
 
     implicitHeight: grid.implicitHeight
     height: implicitHeight
@@ -71,7 +72,6 @@ Item {
             IconAction {
                 width: grid.width
                 icon: "󰀻"
-
                 action: function(){ root.requestAppLauncher() }
             }
         }
@@ -94,8 +94,7 @@ Item {
         Row {
             spacing: 10
             IconAction { width: (grid.width - 10)/2; icon: "󰉏"; action: function(){ root.requestWallpaper() } }
-            IconAction { width: (grid.width - 10)/2; icon: "󰒓"; action: function() {} }
+            IconAction { width: (grid.width - 10)/2; icon: "󰒓"; action: function(){ root.requestSettings() } }
         }
-
     }
 }

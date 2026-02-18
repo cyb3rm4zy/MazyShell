@@ -5,6 +5,7 @@ A powerful yet simple UI overlay made for Hyprland &amp; Niri using Quickshell
 >This project is in early stage development
 
 >[!NOTE]
+<<<<<<< HEAD
 > This project has only been tested on Arch Linux running Hyprland & Niri, however other distros should work (if you can figure out dependencies) but are not officially supported.
 
 # Arch Hyprland Installation
@@ -38,3 +39,31 @@ A powerful yet simple UI overlay made for Hyprland &amp; Niri using Quickshell
 `exec-once = QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
 # Arch Niri Installation
 ## Install Dependencies
+=======
+>This project only properly works on Hyprland and has only been tested on Arch Linux, but should work on other distros
+
+# Hyprland Installation Process
+
+# Install Dependencies
+- quickshell-git (AUR)
+- upower
+- hyprsunset
+- hyprland
+- power-profiles-daemon
+- wireguard-tools
+- hyprlock OR swaylock
+- brightnessctl
+- pipewire & wireplumber
+- bluez
+- networkmanager
+- ttf-jetbrains-mono-nerd
+
+# Prepare filesystem and clone repo
+1. Create a quickshell directory in your .config (`mkdir ~/.config/quickshell`)
+2. Move to the directory (`cd ~/.config/quickshell/`)
+3. Clone the repo (`git clone https://github.com/cyb3rm4zy/MazyShell.git`)
+4. Run it with `QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
+5. Add `exec-once = QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell` to your hyprland config file.
+
+# Niri Dependencies
+>>>>>>> 7b05a57 (Add Settings Panel & Config Service)
