@@ -28,7 +28,7 @@ Item {
     function runShutdown()    { sh("systemctl poweroff") }
     function runReboot()      { sh("systemctl reboot") }
     function runLogout()      { sh("loginctl terminate-user $USER") }
-    function runLock()        { sh("loginctl lock-session || swaylock") }
+    function runLock()        { sh("loginctl lock-session; swaylock") }
     function runWifiUi()      { sh("kitty nmtui >/dev/null 2>&1 &") }
     function runProcessesUi() { sh("kitty -e btop >/dev/null 2>&1 &") }
 
