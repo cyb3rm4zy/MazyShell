@@ -324,7 +324,15 @@ PanelWindow {
                                             onEditingFinished: if (settings.cfg && settings.cfg.loaded) settings.cfg.bg2 = text
                                         }
 
-                                        Text { text: "Text"; color: settings.muted }
+                                        Text { text: "BG3"; color: settings.muted }
+                                        TextField {
+                                            Layout.fillWidth: true
+                                            text: settings.cfg ? String(settings.cfg.borderColor) : ""
+                                            placeholderText: "#2A2A2A"
+                                            onEditingFinished: if (settings.cfg && settings.cfg.loaded) settings.cfg.borderColor = text
+                                        }
+
+                                        Text { text: "TXT"; color: settings.muted }
                                         TextField {
                                             Layout.fillWidth: true
                                             text: settings.cfg ? String(settings.cfg.text) : ""
@@ -332,20 +340,12 @@ PanelWindow {
                                             onEditingFinished: if (settings.cfg && settings.cfg.loaded) settings.cfg.text = text
                                         }
 
-                                        Text { text: "Muted"; color: settings.muted }
+                                        Text { text: "TXT2"; color: settings.muted }
                                         TextField {
                                             Layout.fillWidth: true
                                             text: settings.cfg ? String(settings.cfg.muted) : ""
                                             placeholderText: "#A8A8A8"
                                             onEditingFinished: if (settings.cfg && settings.cfg.loaded) settings.cfg.muted = text
-                                        }
-
-                                        Text { text: "Border"; color: settings.muted }
-                                        TextField {
-                                            Layout.fillWidth: true
-                                            text: settings.cfg ? String(settings.cfg.borderColor) : ""
-                                            placeholderText: "#2A2A2A"
-                                            onEditingFinished: if (settings.cfg && settings.cfg.loaded) settings.cfg.borderColor = text
                                         }
 
                                         Text { text: "Anim (ms)"; color: settings.muted }
