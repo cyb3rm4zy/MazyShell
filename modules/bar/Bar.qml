@@ -1,4 +1,5 @@
 import Quickshell
+import Quickshell.Wayland
 import QtQuick
 
 import qs.components.controls
@@ -17,6 +18,14 @@ PanelWindow {
     anchors { top: true; left: true; right: true }
     implicitHeight: config.appearance.barHeight
     focusable: false
+
+    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.namespace: "mazyshell:bar:" + (screenRef && screenRef.name !== undefined ? String(screenRef.name) : "default")
+
+    Component.onCompleted: {
+        if (screenRef)
+            root.screen = screenRef
+    }
 
     function pick(a, b, fallback) { return (a !== undefined) ? a : ((b !== undefined) ? b : fallback) }
 
