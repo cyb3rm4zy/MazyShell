@@ -21,7 +21,7 @@ ShellRoot {
             S.SidebarState { id: state; config: cfg }
             WallpaperWindow { config: cfg; screenRef: modelData }
 
-            Bar { config: cfg; sidebarState: state; screenRef: modelData }
+            Bar { config: cfg; sidebarState: state; screen: modelData; screenRef: modelData }
 
             Sidebar { config: cfg; sidebarState: state; screen: modelData }
 
