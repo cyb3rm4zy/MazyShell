@@ -11,7 +11,7 @@ PanelWindow {
     required property QtObject config
     required property QtObject sidebarState
     required property var screen
-
+    screen: screenRef
     anchors { top: true; left: true; right: true }
     implicitHeight: config.appearance.barHeight
     focusable: false
