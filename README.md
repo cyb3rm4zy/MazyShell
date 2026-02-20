@@ -38,10 +38,11 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 - `upower` (Read battery values)
 - `power-profiles-daemon` and/or `asusctl` (Power mode switcher(s))
 ```
-paru -S quickshell-git sunsetr hyprland hyprlock brightnessctl wireguard-tools networkmanager bluez btop upower power-profiles-daemon ttf-jetbrains-mono-nerd pipewire pipewire-pulse wireplumber xdgdesktopportal
+paru -S quickshell-git sunsetr swaylock brightnessctl wireguard-tools networkmanager bluez btop upower power-profiles-daemon ttf-jetbrains-mono-nerd pipewire pipewire-pulse wireplumber xdgdesktopportal
 ```
-`sudo systemctl enable --now power-profiles-daemon bluetooth networkmanager`
-
+```
+sudo systemctl enable --now power-profiles-daemon bluetooth networkmanager
+```
 # Installation (After Dependencies)
 ### Hyprland
 1. Create new Quickshell directory:
