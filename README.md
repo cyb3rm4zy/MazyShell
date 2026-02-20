@@ -1,9 +1,7 @@
-# MazyShell
-A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
-
-
 <img width="2880" height="1800" alt="screenshot" src="https://github.com/user-attachments/assets/647438a5-c7b9-4ce7-aff7-c50c290e59ee" />
 
+# MazyShell
+A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 
 >[!WARNING]
 >This project is in early stage development
