@@ -11,7 +11,6 @@ PanelWindow {
     id: root
     required property QtObject config
     required property QtObject sidebarState
-    required property var screen
     required property var screenRef
 
     screen: screenRef
@@ -21,11 +20,6 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "mazyshell:bar:" + (screenRef && screenRef.name !== undefined ? String(screenRef.name) : "default")
-
-    Component.onCompleted: {
-        if (screenRef)
-            root.screen = screenRef
-    }
 
     function pick(a, b, fallback) { return (a !== undefined) ? a : ((b !== undefined) ? b : fallback) }
 
