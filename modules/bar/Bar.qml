@@ -11,6 +11,8 @@ PanelWindow {
     required property QtObject config
     required property QtObject sidebarState
     required property var screen
+    required property var screenRef
+
     screen: screenRef
     anchors { top: true; left: true; right: true }
     implicitHeight: config.appearance.barHeight
@@ -105,7 +107,7 @@ PanelWindow {
             text: root.fg
             borderColor: root.border
             muted: "#A8A8A8"
-            screenRef: root.screen
+            screenRef: root.screenRef
             barPanel: root
             barPill: null
         }
