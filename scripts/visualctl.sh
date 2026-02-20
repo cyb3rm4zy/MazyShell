@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# visualctl.sh — brightnessctl + sunsetr (replaces hyprsunset)
 
 set -u
 
@@ -45,21 +46,25 @@ status_brightness() {
 
 set_brightness() {
   local pct="${1:-100}"
-  if ! have brightnessctl; then
-    exit 0
-  fi
+  have brightnessctl || exit 0
   pct="$(clamp_int "$pct" 1 100)" # avoid full black; QML also clamps
   brightnessctl set "${pct}%" >/dev/null 2>&1 || true
   exit 0
 }
 
+# ---------- sunsetr (blue light) ----------
+
+sunsetr_is_running() {
+  pgrep -x sunsetr >/dev/null 2>&1
+}
+
 status_bluelight() {
-  if ! have hyprsunset; then
+  if ! have sunsetr; then
     echo "BLUELIGHT|0"
     exit 0
   fi
 
-  if pgrep -x hyprsunset >/dev/null 2>&1; then
+  if sunsetr_is_running; then
     echo "BLUELIGHT|1"
   else
     echo "BLUELIGHT|0"
@@ -69,26 +74,35 @@ status_bluelight() {
 
 blue_on() {
   local temp="${1:-3600}"
+  have sunsetr || exit 0
 
-  have hyprsunset || exit 0
+  temp="$(clamp_int "$temp" 1000 20000)"
 
-  if pgrep -x hyprsunset >/dev/null 2>&1; then
-    exit 0
+  # Ensure a running instance (background)
+  if ! sunsetr_is_running; then
+    sunsetr --background >/dev/null 2>&1 & disown || true
+    # give it a moment to spawn; don't hard-fail if it doesn't
+    sleep 0.05 2>/dev/null || true
   fi
 
-  temp="$(clamp_int "$temp" 1000 10000)"
+  # Force "static" mode at requested temperature (gamma 100)
+  # Use individual set calls for maximal compatibility across versions.
+  sunsetr set transition_mode=static >/dev/null 2>&1 || true
+  sunsetr set static_temp="$temp" >/dev/null 2>&1 || true
+  sunsetr set static_gamma=100 >/dev/null 2>&1 || true
 
-  hyprsunset -t "$temp" >/dev/null 2>&1 & disown || true
-
-  if ! pgrep -x hyprsunset >/dev/null 2>&1; then
-    hyprsunset --temperature "$temp" >/dev/null 2>&1 & disown || true
-  fi
+  # Apply immediately if supported; fall back to plain restart.
+  sunsetr restart --instant >/dev/null 2>&1 || sunsetr restart >/dev/null 2>&1 || true
 
   exit 0
 }
 
 blue_off() {
-  pkill -x hyprsunset >/dev/null 2>&1 || true
+  # Prefer clean shutdown; fall back to pkill.
+  if have sunsetr; then
+    sunsetr stop >/dev/null 2>&1 || true
+  fi
+  pkill -x sunsetr >/dev/null 2>&1 || true
   exit 0
 }
 
