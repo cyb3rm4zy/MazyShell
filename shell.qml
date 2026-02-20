@@ -25,10 +25,7 @@ ShellRoot {
 
             Sidebar { config: cfg; sidebarState: state; screen: modelData }
 
-            EdgeCorner { config: cfg; sidebarState: state; screen: modelData }
-            EdgeCornerBottom { config: cfg; sidebarState: state; screen: modelData }
             OppositeTopCorner { config: cfg; screen: modelData }
-            
         }
     }
 }

@@ -347,33 +347,6 @@ PanelWindow {
                                             placeholderText: "#A8A8A8"
                                             onEditingFinished: if (settings.cfg && settings.cfg.loaded) settings.cfg.muted = text
                                         }
-
-                                        Text { text: "Anim (ms)"; color: settings.muted }
-                                        SpinBox {
-                                            Layout.fillWidth: true
-                                            from: 0; to: 2000
-                                            value: settings.cfg ? settings.cfg.animMs : 150
-                                            enabled: !!settings.cfg && settings.cfg.loaded === true
-                                            onValueModified: if (settings.cfg && settings.cfg.loaded) settings.cfg.animMs = value
-                                        }
-
-                                        Text { text: "Radius"; color: settings.muted }
-                                        SpinBox {
-                                            Layout.fillWidth: true
-                                            from: 0; to: 40
-                                            value: settings.cfg ? settings.cfg.radius : settings.radius
-                                            enabled: !!settings.cfg && settings.cfg.loaded === true
-                                            onValueModified: if (settings.cfg && settings.cfg.loaded) settings.cfg.radius = value
-                                        }
-
-                                        Text { text: "Padding"; color: settings.muted }
-                                        SpinBox {
-                                            Layout.fillWidth: true
-                                            from: 0; to: 64
-                                            value: settings.cfg ? settings.cfg.pad : settings.pad
-                                            enabled: !!settings.cfg && settings.cfg.loaded === true
-                                            onValueModified: if (settings.cfg && settings.cfg.loaded) settings.cfg.pad = value
-                                        }
                                     }
 
                                     Item { Layout.fillHeight: true }

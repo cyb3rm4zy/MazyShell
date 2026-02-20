@@ -9,10 +9,6 @@ QtObject {
     property bool open: false
     property bool pinnedOpen: false
 
-    readonly property int animMs: (config && config.appearance && config.appearance.animMs !== undefined)
-        ? config.appearance.animMs
-        : 220
-
     readonly property int hoverCloseDelayMs: (config && config.sidebar && config.sidebar.hoverCloseDelayMs !== undefined)
         ? config.sidebar.hoverCloseDelayMs
         : 150
@@ -21,11 +17,16 @@ QtObject {
         ? config.sidebar.sidebarWidth
         : 320
 
+    readonly property int _durationMs: 240
+    readonly property var _curveExpressiveFastSpatial: [0.42, 1.67, 0.21, 0.9, 1, 1]
+    readonly property var _curveEmphasized: [0.05, 0, 2/15, 0.06, 1/6, 0.4, 5/24, 0.82, 0.25, 1, 1, 1]
+
     property NumberAnimation slideAnim: NumberAnimation {
         target: state
         property: "slide"
-        duration: state.animMs
-        easing.type: Easing.InOutCubic
+        duration: state._durationMs
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: state._curveExpressiveFastSpatial
     }
 
     property Timer closeTimer: Timer {
@@ -65,6 +66,9 @@ QtObject {
 
         slideAnim.stop()
         slideAnim.to = toVal
+        slideAnim.easing.bezierCurve = (toVal > slide)
+            ? _curveExpressiveFastSpatial
+            : _curveEmphasized
         slideAnim.start()
     }
 

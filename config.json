@@ -1,41 +1,68 @@
 {
   "appearance": {
+    "accent": "#B80000",
+    "animMs": 40,
+    "barHeight": 35,
     "bg": "#0B0B0B",
     "bg2": "#1A1A1A",
-    "fg": "#E6E6E6",
-    "text": "#E6E6E6",
-    "muted": "#A8A8A8",
-    "accent": "#B80000",
     "borderColor": "#2A2A2A",
-    "opacity": 1.0,
-    "barHeight": 35,
-    "pad": 20,
+    "fg": "#E6E6E6",
     "fontSize": 12,
+    "muted": "#A8A8A8",
+    "opacity": 1,
+    "pad": 20,
     "radius": 12,
-    "animMs": 40
+    "text": "#E6E6E6"
+  },
+  "bar": {
+    "centerModules": [
+      {
+        "enabled": true,
+        "key": "workspaces"
+      }
+    ],
+    "leftModules": [
+      {
+        "enabled": true,
+        "key": "os"
+      },
+      {
+        "enabled": true,
+        "key": "resourceDials"
+      },
+      {
+        "enabled": true,
+        "key": "network"
+      }
+    ],
+    "rightModules": [
+      {
+        "enabled": true,
+        "key": "tray"
+      },
+      {
+        "enabled": true,
+        "key": "bluetooth"
+      },
+      {
+        "enabled": true,
+        "key": "volume"
+      },
+      {
+        "enabled": true,
+        "key": "clock"
+      }
+    ]
   },
   "sidebar": {
     "edge": "left",
-    "edgeWidth": 8,
+    "edgeByScreen": {
+      "DP-2": "right",
+      "DP-3": "left"
+    },
     "edgeCornerRadius": 20,
-    "sidebarWidth": 300,
+    "edgeWidth": 8,
     "hoverCloseDelayMs": 300,
-    "edgeByScreen": { "DP-2": "right", "DP-3": "left" }
-  },
-  "bar": {
-    "leftModules": [
-      { "key": "os", "enabled": true },
-      { "key": "resourceDials", "enabled": true },
-      { "key": "network", "enabled": true }
-    ],
-    "centerModules": [
-      { "key": "workspaces", "enabled": true }
-    ],
-    "rightModules": [
-      { "key": "tray", "enabled": true },
-      { "key": "bluetooth", "enabled": true },
-      { "key": "volume", "enabled": true },
-      { "key": "clock", "enabled": true }
-    ]
+    "sidebarWidth": 300
   }
 }
