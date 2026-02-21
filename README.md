@@ -15,6 +15,7 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 - `hyprland` OR `niri` (Wayland WM)
 - `ttf-jetbrains-mono-nerd` (for icons)
 - `xdgdesktopportal` (compatibility)
+- `jq` (parsing and json)
 ### Button Suite
 - `hyprlock` OR `swaylock` (Lock PC)
 - `btop` OR `htop` (Resources & Processes)
@@ -32,7 +33,6 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 ### VPN Suite
 - `wireguard-tools` (Create wireguard connections)
     - Unfortunately, it currently requires you to allow your user to use wireguard without sudo
-    - See how to do this below
 ### dGPU Suite
 - `supergfxctl` (GPU Switcher)
     - Only tested on ASUS Zephyrus G14 (Feel free to test and let me know)
