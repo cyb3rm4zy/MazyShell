@@ -27,7 +27,8 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 - `pipewire-pulse`
 - `wireplumber`
 ### Bluetooth Suite
-- `bluez` (Control & support bluetooth)
+`bluez` (Control & support bluetooth)
+`bluez-utils`
 ### Network Suite
 - `networkmanager` (Control connections)
 ### VPN Suite
@@ -48,23 +49,43 @@ sudo systemctl enable --now power-profiles-daemon bluetooth networkmanager
 # Installation (After Dependencies)
 ### Hyprland
 1. Create new Quickshell directory:
-`mkdir ~/.config/quickshell`
+```
+mkdir ~/.config/quickshell
+```
 2. Move into directory:
-`cd ~/.config/quickshell`
+```
+cd ~/.config/quickshell
+```
 3. Clone the repo:
-`git clone https://github.com/cyb3rm4zy/MazyShell.git`
+```
+git clone https://github.com/cyb3rm4zy/MazyShell.git
+```
 4. Test Run Quickshell with MazyShell config:
-`QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
+```
+QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell
+```
 5. Add to Hyprland config:
-`exec-once = QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
+```
+exec-once = QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell
+```
 ### Niri
 1. Create new Quickshell directory:
-`mkdir ~/.config/quickshell`
+```
+mkdir ~/.config/quickshell
+```
 2. Move into directory:
-`cd ~/.config/quickshell`
+```
+cd ~/.config/quickshell
+```
 3. Clone the repo:
-`git clone https://github.com/cyb3rm4zy/MazyShell.git`
+```
+git clone https://github.com/cyb3rm4zy/MazyShell.git
+```
 4. Test Run Quickshell with MazyShell config:
-`QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell`
+```
+QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell
+```
 5. Add to Niri config:
-`spawn-sh-at-startup "QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell"`
+```
+spawn-sh-at-startup "QT_QPA_PLATFORMTHEME=xdgdesktopportal qs -c MazyShell"
+```
