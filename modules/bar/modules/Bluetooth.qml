@@ -15,9 +15,8 @@ Item {
     property string borderColor: "#2A2A2A"
 
     readonly property var adapter: Bluetooth.defaultAdapter
-    readonly property bool powered: adapter ? adapter.enabled : false // :contentReference[oaicite:11]{index=11}
+    readonly property bool powered: adapter ? adapter.enabled : false
 
-    // first connected device name (or "None")
     readonly property string connectedName: {
         const vals = Bluetooth.devices?.values ?? [];
         for (let i = 0; i < vals.length; i++) {

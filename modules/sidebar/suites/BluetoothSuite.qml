@@ -17,15 +17,12 @@ FocusScope {
     property int pad: 10
     property int radius: 12
 
-    // ---- Quickshell.Bluetooth ----
     readonly property var adapter: Bluetooth.defaultAdapter
     readonly property bool btAvailable: adapter !== null
 
-    // Bind UI state straight to adapter
     property bool powered: btAvailable ? adapter.enabled : false
     property bool scanning: btAvailable ? adapter.discovering : false
 
-    // UI-only state
     property bool discoveredExpanded: true
     property bool actionRunning: false
     property string lastError: ""
@@ -38,13 +35,9 @@ FocusScope {
     }
     function releasePanelHover() { }
 
-    // ---- Device sets ----
-    // NOTE: Caelestia sorts Bluetooth.devices by connected/paired; we do the same pattern.
-    // Bluetooth.devices is an ObjectModel; `.values` gives JS array in QS. :contentReference[oaicite:3]{index=3}
     readonly property var allDevicesSorted: {
         const vals = Bluetooth.devices?.values ?? [];
         return vals.slice().sort((a, b) => {
-            // connected first, then paired, then name/address
             const dc = (b.connected ? 1 : 0) - (a.connected ? 1 : 0);
             if (dc !== 0) return dc;
             const dp = (b.paired ? 1 : 0) - (a.paired ? 1 : 0);
@@ -60,16 +53,15 @@ FocusScope {
     readonly property var pairedDevices: allDevicesSorted.filter(d => d.paired)
     readonly property var discoveredDevices: allDevicesSorted.filter(d => !d.paired)
 
-    // ---- Actions ----
     function setPower(on) {
         if (!btAvailable) return;
         lastError = "";
         actionRunning = true;
         try {
-            adapter.enabled = on; // :contentReference[oaicite:4]{index=4}
+            adapter.enabled = on;
             if (!on) {
-                // stop scan implicitly if the stack does it, but be explicit
-                adapter.discovering = false; // :contentReference[oaicite:5]{index=5}
+                adapter.discovering = false;
+                discoveredExpanded = false;
             }
         } catch (e) {
             lastError = String(e);
@@ -84,7 +76,7 @@ FocusScope {
         actionRunning = true;
         discoveredExpanded = true;
         try {
-            adapter.discovering = on; // :contentReference[oaicite:6]{index=6}
+            adapter.discovering = on;
         } catch (e) {
             lastError = String(e);
         }
@@ -101,7 +93,6 @@ FocusScope {
         lastError = "";
         actionRunning = true;
         try {
-            // Setting connected toggles connect/disconnect :contentReference[oaicite:7]{index=7}
             deviceObj.connected = !deviceObj.connected;
         } catch (e) {
             lastError = String(e);
@@ -117,11 +108,9 @@ FocusScope {
         lastError = "";
         actionRunning = true;
         try {
-            // Pair, trust, then connect (best-effort).
-            // paired is readonly; pair() initiates pairing. :contentReference[oaicite:8]{index=8}
             deviceObj.pair();
-            deviceObj.trusted = true; // :contentReference[oaicite:9]{index=9}
-            deviceObj.connected = true; // :contentReference[oaicite:10]{index=10}
+            deviceObj.trusted = true;
+            deviceObj.connected = true;
         } catch (e) {
             lastError = String(e);
         }
@@ -252,7 +241,6 @@ FocusScope {
                 }
             }
 
-            // ---- Paired list ----
             Item {
                 width: parent.width
                 height: (root.pairedDevices.length > 0) ? (pairedHeader.implicitHeight + pairedBox.height + 10) : 0
@@ -352,7 +340,6 @@ FocusScope {
                 }
             }
 
-            // ---- Discovered ----
             Rectangle {
                 id: discoveredShell
                 width: parent.width
