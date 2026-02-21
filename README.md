@@ -7,7 +7,7 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 >This project is in early stage development
 
 >[!NOTE]
-> CURRENTLY this project has only been tested on Arch Linux running Hyprland & Niri, however other distros and WMs should work (if you can figure out dependencies) but are not officially supported.
+> CURRENTLY this project has only been tested on Gentoo & Arch Linux running Hyprland & Niri, however other distros and WMs should work (if you can figure out dependencies) but are not officially supported.
 
 # Dependencies
 ### Core Requirements
@@ -40,7 +40,7 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 ### Power Suite
 - `upower` (Read battery values)
 - `power-profiles-daemon` and/or `asusctl` (Power mode switcher(s))
-#### Quick Command
+#### Quick Command (AUR)
 ```
 paru -S quickshell-git sunsetr swaylock brightnessctl wireguard-tools networkmanager bluez btop upower power-profiles-daemon ttf-jetbrains-mono-nerd pipewire pipewire-pulse wireplumber xdgdesktopportal
 ```

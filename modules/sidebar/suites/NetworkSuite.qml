@@ -1,5 +1,3 @@
-
-
 import QtQuick
 import Quickshell.Io
 
@@ -108,6 +106,9 @@ FocusScope {
 
         root.uiWifiPowered = on
         if (!on) {
+            // --- NEW: collapse + "grey out" behavior triggers off scanEnabled/opacity ---
+            root.discoveredExpanded = false
+
             root.scanning = false
             scanStopTimer.stop()
             scanTick.stop()
@@ -410,6 +411,9 @@ FocusScope {
                 border.color: root.borderColor
                 clip: true
 
+                // --- NEW: grey out discovered section when Wi-Fi is off ---
+                opacity: root.scanEnabled ? 1.0 : 0.6
+
                 readonly property int headerH: 30
                 readonly property int bodyH: discoveredCol.implicitHeight + 8
 
@@ -436,7 +440,11 @@ FocusScope {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
+
+                        // --- NEW: disable collapsing/expanding when Wi-Fi is off ---
+                        enabled: root.scanEnabled
+                        cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
                         propagateComposedEvents: true
                         onEntered: root.keepPanelHovered()
                         onExited:  root.releasePanelHover()
@@ -487,8 +495,11 @@ FocusScope {
                                 MouseArea {
                                     anchors.fill: parent
                                     hoverEnabled: true
-                                    cursorShape: root.canUseWifi ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                    enabled: root.canUseWifi && !root.connectBusy
+
+                                    // --- NEW: disable list interaction when Wi-Fi is off ---
+                                    enabled: root.scanEnabled && !root.connectBusy
+                                    cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+
                                     propagateComposedEvents: true
                                     onEntered: { parent.hovered = true; root.keepPanelHovered() }
                                     onExited:  { parent.hovered = false; root.releasePanelHover() }
