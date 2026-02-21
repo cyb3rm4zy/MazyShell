@@ -73,7 +73,7 @@ status_bluelight() {
 }
 
 blue_on() {
-  local temp="${1:-3600}"
+  local temp="${1:-3800}"
   have sunsetr || exit 0
 
   temp="$(clamp_int "$temp" 1000 20000)"

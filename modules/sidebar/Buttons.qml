@@ -27,10 +27,10 @@ Item {
 
     function runShutdown()    { sh("systemctl poweroff") }
     function runReboot()      { sh("systemctl reboot") }
-    function runLogout()      { sh("loginctl terminate-user $USER") }
+    function runLogout()      { sh("killall Hyprland; killall niri; killall sway") }
     function runLock()        { sh("loginctl lock-session; swaylock") }
-    function runWifiUi()      { sh("kitty nmtui >/dev/null 2>&1 &") }
-    function runProcessesUi() { sh("kitty -e btop >/dev/null 2>&1 &") }
+    function runWifiUi()      { sh("kitty nmtui; alacritty nmtui") }
+    function runProcessesUi() { sh("kitty -e btop; alacritty btop") }
 
     component IconAction: Rectangle {
         width: 100

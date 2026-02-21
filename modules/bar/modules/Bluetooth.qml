@@ -1,5 +1,5 @@
 import QtQuick
-import Quickshell.Io
+import Quickshell.Bluetooth
 
 Item {
     id: root
@@ -14,14 +14,23 @@ Item {
     property string muted: "#A8A8A8"
     property string borderColor: "#2A2A2A"
 
-    property bool powered: false
-    property string connectedName: ""
+    readonly property var adapter: Bluetooth.defaultAdapter
+    readonly property bool powered: adapter ? adapter.enabled : false // :contentReference[oaicite:11]{index=11}
 
-    readonly property string btctlPath: "$HOME/.config/quickshell/MazyShell/scripts/bluetoothctl.sh"
+    // first connected device name (or "None")
+    readonly property string connectedName: {
+        const vals = Bluetooth.devices?.values ?? [];
+        for (let i = 0; i < vals.length; i++) {
+            if (vals[i].connected) {
+                const n = vals[i].name || vals[i].deviceName || "";
+                return n.length ? n : vals[i].address;
+            }
+        }
+        return "";
+    }
 
     function iconForState() {
         return root.powered ? "󰂯" : "󰂲"
-
     }
 
     Row {
@@ -51,30 +60,4 @@ Item {
             elide: Text.ElideRight
         }
     }
-
-    Process {
-        id: btProc
-        command: ["sh", "-lc", root.btctlPath + " bar_status"]
-
-        stdout: StdioCollector {
-            waitForEnd: true
-            onStreamFinished: {
-                var raw = (this.text || "").trim()
-                if (!raw) return
-                var parts = raw.split("|")
-
-                root.powered = (parts[0] === "yes")
-                root.connectedName = (parts.length > 1) ? (parts[1] || "").trim() : ""
-            }
-        }
-    }
-
-    Timer {
-        interval: 3000
-        running: true
-        repeat: true
-        onTriggered: btProc.exec(btProc.command)
-    }
-
-    Component.onCompleted: btProc.exec(btProc.command)
 }

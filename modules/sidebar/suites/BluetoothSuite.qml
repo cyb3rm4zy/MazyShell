@@ -1,5 +1,5 @@
 import QtQuick
-import Quickshell.Io
+import Quickshell.Bluetooth
 
 FocusScope {
     id: root
@@ -17,24 +17,18 @@ FocusScope {
     property int pad: 10
     property int radius: 12
 
-    readonly property string btctlPath: "$HOME/.config/quickshell/MazyShell/scripts/bluetoothctl.sh"
+    // ---- Quickshell.Bluetooth ----
+    readonly property var adapter: Bluetooth.defaultAdapter
+    readonly property bool btAvailable: adapter !== null
 
-    property bool powered: false
+    // Bind UI state straight to adapter
+    property bool powered: btAvailable ? adapter.enabled : false
+    property bool scanning: btAvailable ? adapter.discovering : false
 
-    property bool scanning: false
+    // UI-only state
     property bool discoveredExpanded: true
-    property int scanTickIntervalMs: 900
-
     property bool actionRunning: false
     property string lastError: ""
-
-    property string _actionKind: ""
-    property string _actionMac: ""
-
-    property var _foundMap: ({})
-
-    ListModel { id: pairedModel }
-    ListModel { id: foundModel }
 
     implicitWidth: 220
     implicitHeight: box.implicitHeight
@@ -44,178 +38,94 @@ FocusScope {
     }
     function releasePanelHover() { }
 
-    function shQuote(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'" }
-
-    Timer {
-        id: refreshTimer
-        interval: 120
-        repeat: false
-        onTriggered: root.refresh()
-    }
-    function refreshSoon() { refreshTimer.restart() }
-
-    property int scanTicksLeft: 0
-    Timer {
-        id: scanTick
-        interval: root.scanTickIntervalMs
-        repeat: true
-        running: false
-        onTriggered: {
-            if (!root.scanning) { stop(); return }
-            root.refresh()
-            root.scanTicksLeft--
-            if (root.scanTicksLeft <= 0) stop()
-        }
+    // ---- Device sets ----
+    // NOTE: Caelestia sorts Bluetooth.devices by connected/paired; we do the same pattern.
+    // Bluetooth.devices is an ObjectModel; `.values` gives JS array in QS. :contentReference[oaicite:3]{index=3}
+    readonly property var allDevicesSorted: {
+        const vals = Bluetooth.devices?.values ?? [];
+        return vals.slice().sort((a, b) => {
+            // connected first, then paired, then name/address
+            const dc = (b.connected ? 1 : 0) - (a.connected ? 1 : 0);
+            if (dc !== 0) return dc;
+            const dp = (b.paired ? 1 : 0) - (a.paired ? 1 : 0);
+            if (dp !== 0) return dp;
+            const an = (a.name || a.deviceName || a.address || "").toLowerCase();
+            const bn = (b.name || b.deviceName || b.address || "").toLowerCase();
+            if (an < bn) return -1;
+            if (an > bn) return 1;
+            return 0;
+        });
     }
 
-    function modelIndexByMac(model, mac) {
-        for (var i = 0; i < model.count; i++) {
-            if (model.get(i).mac === mac) return i
-        }
-        return -1
-    }
+    readonly property var pairedDevices: allDevicesSorted.filter(d => d.paired)
+    readonly property var discoveredDevices: allDevicesSorted.filter(d => !d.paired)
 
-    function upsertPaired(mac, connected, name) {
-        if (!mac.length) return
-        var n = (name && name.length) ? name : mac
-        var idx = modelIndexByMac(pairedModel, mac)
-        if (idx < 0) pairedModel.append({ mac: mac, connected: connected, name: n })
-        else {
-            pairedModel.setProperty(idx, "connected", connected)
-            pairedModel.setProperty(idx, "name", n)
-        }
-    }
-
-    function setFoundMap(mapObj) {
-        root._foundMap = mapObj || ({})
-        var seen = {}
-        var keys = Object.keys(root._foundMap)
-
-        keys.sort(function(a, b) {
-            var na = (root._foundMap[a] || "").toLowerCase()
-            var nb = (root._foundMap[b] || "").toLowerCase()
-            if (na < nb) return -1
-            if (na > nb) return 1
-            return a < b ? -1 : (a > b ? 1 : 0)
-        })
-
-        for (var i = 0; i < keys.length; i++) {
-            var mac = keys[i]
-            var name = root._foundMap[mac]
-            seen[mac] = true
-
-            var idx = modelIndexByMac(foundModel, mac)
-            if (idx < 0) foundModel.append({ mac: mac, name: name })
-            else foundModel.setProperty(idx, "name", name)
-        }
-
-        for (var j = foundModel.count - 1; j >= 0; j--) {
-            var m = foundModel.get(j).mac
-            if (!seen[m]) foundModel.remove(j)
-        }
-    }
-
-    function clearDiscovered() {
-        root._foundMap = ({})
-        foundModel.clear()
-    }
-
-    function formatBtError(outText, ec) {
-        var msg = (outText || "").trim()
-        msg = msg.replace(/\n?__EC:\d+\s*$/m, "").trim()
-        if (!msg.length) return "Bluetooth command failed (exit " + String(ec) + ")."
-        var lines = msg.split("\n").map(function(l){ return (l || "").trim() })
-            .filter(function(l){ return l.length > 0 })
-        return lines.length ? lines[lines.length - 1] : msg
-    }
-
-    Process { id: cleanupProc }
-    function runCleanup(cmd) {
-        cleanupProc.command = ["sh", "-lc", cmd + " >/dev/null 2>&1 || true" ]
-        cleanupProc.exec(cleanupProc.command)
-    }
-
-    function runAction(kind, shellCmd, mac) {
-        if (root.actionRunning) return
-        root.lastError = ""
-        root.actionRunning = true
-        root._actionKind = kind
-        root._actionMac = mac ? mac : ""
-
-        actionProc.command = ["sh", "-lc",
-            "out=$( { " + shellCmd + "; } 2>&1 ); ec=$?; " +
-            "printf '%s\\n__EC:%s\\n' \"$out\" \"$ec\"; " +
-            "exit 0"
-        ]
-        actionProc.exec(actionProc.command)
-    }
-
-    Process { id: scanProc }
-
-    function refresh() {
-        if (root.actionRunning) return
-        statusProc.exec(statusProc.command)
-    }
-
+    // ---- Actions ----
     function setPower(on) {
-        if (root.actionRunning) return
-
-        root.powered = on
-        root.lastError = ""
-
-        if (!on) {
-            root.scanning = false
-            scanTick.stop()
-            runCleanup("bluetoothctl scan off")
-            clearDiscovered()
+        if (!btAvailable) return;
+        lastError = "";
+        actionRunning = true;
+        try {
+            adapter.enabled = on; // :contentReference[oaicite:4]{index=4}
+            if (!on) {
+                // stop scan implicitly if the stack does it, but be explicit
+                adapter.discovering = false; // :contentReference[oaicite:5]{index=5}
+            }
+        } catch (e) {
+            lastError = String(e);
         }
-
-        runAction("power", root.btctlPath + " power " + (on ? "on" : "off"), "")
-        refreshSoon()
+        actionRunning = false;
     }
 
     function setScan(on) {
-        if (!root.powered || root.actionRunning) return
-
-        root.scanning = on
-        root.discoveredExpanded = true
-        root.lastError = ""
-
-        if (on) {
-            scanProc.command = ["sh", "-lc", root.btctlPath + " scan on >/dev/null 2>&1 || true"]
-            scanProc.exec(scanProc.command)
-
-            root.scanTicksLeft = 999999
-            scanTick.start()
-            refreshSoon()
-        } else {
-            scanTick.stop()
-            clearDiscovered()
-            runAction("scanOff", root.btctlPath + " scan off", "")
-            refreshSoon()
+        if (!btAvailable) return;
+        if (!adapter.enabled) return;
+        lastError = "";
+        actionRunning = true;
+        discoveredExpanded = true;
+        try {
+            adapter.discovering = on; // :contentReference[oaicite:6]{index=6}
+        } catch (e) {
+            lastError = String(e);
         }
+        actionRunning = false;
     }
 
-    function toggleScan() { setScan(!root.scanning) }
+    function toggleScan() { setScan(!scanning) }
 
-    function connectOrDisconnect(mac, isConnected) {
-        if (!root.powered || root.actionRunning) return
+    function connectOrDisconnect(deviceObj) {
+        if (!btAvailable) return;
+        if (!adapter.enabled) return;
+        if (!deviceObj) return;
 
-        var idx = modelIndexByMac(pairedModel, mac)
-        if (idx >= 0) pairedModel.setProperty(idx, "connected", !isConnected)
-
-        runAction(
-            "connect",
-            root.btctlPath + " " + (isConnected ? "disconnect " : "connect ") + shQuote(mac),
-            mac
-        )
-        refreshSoon()
+        lastError = "";
+        actionRunning = true;
+        try {
+            // Setting connected toggles connect/disconnect :contentReference[oaicite:7]{index=7}
+            deviceObj.connected = !deviceObj.connected;
+        } catch (e) {
+            lastError = String(e);
+        }
+        actionRunning = false;
     }
 
-    function pairAndConnect(mac) {
-        if (!root.powered || root.actionRunning) return
-        runAction("pairConnect", root.btctlPath + " pair-connect " + shQuote(mac), mac)
-        refreshSoon()
+    function pairAndConnect(deviceObj) {
+        if (!btAvailable) return;
+        if (!adapter.enabled) return;
+        if (!deviceObj) return;
+
+        lastError = "";
+        actionRunning = true;
+        try {
+            // Pair, trust, then connect (best-effort).
+            // paired is readonly; pair() initiates pairing. :contentReference[oaicite:8]{index=8}
+            deviceObj.pair();
+            deviceObj.trusted = true; // :contentReference[oaicite:9]{index=9}
+            deviceObj.connected = true; // :contentReference[oaicite:10]{index=10}
+        } catch (e) {
+            lastError = String(e);
+        }
+        actionRunning = false;
     }
 
     Rectangle {
@@ -240,11 +150,11 @@ FocusScope {
 
             Text {
                 width: parent.width
-                text: root.lastError
+                text: root.btAvailable ? root.lastError : "No Bluetooth adapter detected."
                 color: root.red
                 font.pixelSize: 10
                 wrapMode: Text.Wrap
-                visible: root.lastError.length > 0
+                visible: (!root.btAvailable) || (root.lastError.length > 0)
             }
 
             Row {
@@ -264,21 +174,33 @@ FocusScope {
                     border.width: 1
                     border.color: root.borderColor
                     property bool hovered: false
-                    opacity: root.actionRunning ? 0.7 : 1.0
+                    opacity: (root.btAvailable && !root.actionRunning) ? 1.0 : 0.6
 
                     Row {
                         anchors.centerIn: parent
                         height: parent.height
                         spacing: 8
-                        Text { height: parent.height; text: root.powered ? "󰂯" : "󰂲"; color: powerBtn.hovered ? root.red : (root.powered ? root.text : root.muted); font.pixelSize: 16; verticalAlignment: Text.AlignVCenter }
-                        Text { height: parent.height; text: root.powered ? "On" : "Off"; color: powerBtn.hovered ? root.red : (root.powered ? root.text : root.muted); font.pixelSize: 12; verticalAlignment: Text.AlignVCenter }
+                        Text {
+                            height: parent.height
+                            text: root.powered ? "󰂯" : "󰂲"
+                            color: powerBtn.hovered ? root.red : (root.powered ? root.text : root.muted)
+                            font.pixelSize: 16
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        Text {
+                            height: parent.height
+                            text: root.powered ? "On" : "Off"
+                            color: powerBtn.hovered ? root.red : (root.powered ? root.text : root.muted)
+                            font.pixelSize: 12
+                            verticalAlignment: Text.AlignVCenter
+                        }
                     }
 
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: (!root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        enabled: !root.actionRunning
+                        cursorShape: (root.btAvailable && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        enabled: root.btAvailable && !root.actionRunning
                         propagateComposedEvents: true
                         onEntered: { powerBtn.hovered = true; root.keepPanelHovered() }
                         onExited:  { powerBtn.hovered = false; root.releasePanelHover() }
@@ -294,14 +216,20 @@ FocusScope {
                     color: root.bg
                     border.width: 1
                     border.color: root.borderColor
-                    opacity: (root.powered && !root.actionRunning) ? 1.0 : 0.6
+                    opacity: (root.powered && root.btAvailable && !root.actionRunning) ? 1.0 : 0.6
                     property bool hovered: false
 
                     Row {
                         anchors.centerIn: parent
                         height: parent.height
                         spacing: 8
-                        Text { height: parent.height; text: root.scanning ? "󰑐" : "󰍉"; color: scanBtn.hovered ? root.red : (root.powered ? root.text : root.muted); font.pixelSize: 16; verticalAlignment: Text.AlignVCenter }
+                        Text {
+                            height: parent.height
+                            text: root.scanning ? "󰑐" : "󰍉"
+                            color: scanBtn.hovered ? root.red : (root.powered ? root.text : root.muted)
+                            font.pixelSize: 16
+                            verticalAlignment: Text.AlignVCenter
+                        }
                         Text {
                             height: parent.height
                             text: root.scanning ? "Scan On" : "Scan Off"
@@ -314,8 +242,8 @@ FocusScope {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: (root.powered && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        enabled: root.powered && !root.actionRunning
+                        cursorShape: (root.powered && root.btAvailable && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        enabled: root.powered && root.btAvailable && !root.actionRunning
                         propagateComposedEvents: true
                         onEntered: { scanBtn.hovered = true; root.keepPanelHovered() }
                         onExited:  { scanBtn.hovered = false; root.releasePanelHover() }
@@ -324,10 +252,11 @@ FocusScope {
                 }
             }
 
+            // ---- Paired list ----
             Item {
                 width: parent.width
-                height: (pairedModel.count > 0) ? (pairedHeader.implicitHeight + pairedBox.height + 10) : 0
-                visible: pairedModel.count > 0
+                height: (root.pairedDevices.length > 0) ? (pairedHeader.implicitHeight + pairedBox.height + 10) : 0
+                visible: root.pairedDevices.length > 0
 
                 Column {
                     anchors.fill: parent
@@ -358,8 +287,9 @@ FocusScope {
                                 spacing: 2
 
                                 Repeater {
-                                    model: pairedModel
+                                    model: root.pairedDevices
                                     delegate: Rectangle {
+                                        required property var modelData
                                         width: parent.width
                                         height: 30
                                         radius: 8
@@ -372,20 +302,47 @@ FocusScope {
                                             anchors.rightMargin: 10
                                             spacing: 10
 
-                                            Text { width: 16; height: parent.height; text: model.connected ? "󰂱" : "󰂳"; color: model.connected ? root.red : root.muted; font.pixelSize: 16; verticalAlignment: Text.AlignVCenter }
-                                            Text { height: parent.height; text: model.name; color: root.text; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight; width: parent.width - 90 }
-                                            Text { height: parent.height; text: model.connected ? "Disconnect" : "Connect"; color: (root.powered && !root.actionRunning) ? (model.connected ? root.muted : root.text) : root.muted; font.pixelSize: 11; verticalAlignment: Text.AlignVCenter }
+                                            Text {
+                                                width: 16
+                                                height: parent.height
+                                                text: modelData.connected ? "󰂱" : "󰂳"
+                                                color: modelData.connected ? root.red : root.muted
+                                                font.pixelSize: 16
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+
+                                            Text {
+                                                height: parent.height
+                                                text: (modelData.name && modelData.name.length) ? modelData.name
+                                                      : (modelData.deviceName && modelData.deviceName.length) ? modelData.deviceName
+                                                      : modelData.address
+                                                color: root.text
+                                                font.pixelSize: 12
+                                                verticalAlignment: Text.AlignVCenter
+                                                elide: Text.ElideRight
+                                                width: parent.width - 90
+                                            }
+
+                                            Text {
+                                                height: parent.height
+                                                text: modelData.connected ? "Disconnect" : "Connect"
+                                                color: (root.powered && root.btAvailable && !root.actionRunning)
+                                                       ? (modelData.connected ? root.muted : root.text)
+                                                       : root.muted
+                                                font.pixelSize: 11
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
                                         }
 
                                         MouseArea {
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            cursorShape: (root.powered && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                            enabled: root.powered && !root.actionRunning
+                                            cursorShape: (root.powered && root.btAvailable && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                            enabled: root.powered && root.btAvailable && !root.actionRunning
                                             propagateComposedEvents: true
                                             onEntered: { parent.hovered = true; root.keepPanelHovered() }
                                             onExited:  { parent.hovered = false; root.releasePanelHover() }
-                                            onClicked: root.connectOrDisconnect(model.mac, model.connected)
+                                            onClicked: root.connectOrDisconnect(modelData)
                                         }
                                     }
                                 }
@@ -395,6 +352,7 @@ FocusScope {
                 }
             }
 
+            // ---- Discovered ----
             Rectangle {
                 id: discoveredShell
                 width: parent.width
@@ -403,7 +361,7 @@ FocusScope {
                 border.width: 1
                 border.color: root.borderColor
                 clip: true
-                opacity: root.powered ? 1.0 : 0.6
+                opacity: root.powered && root.btAvailable ? 1.0 : 0.6
 
                 readonly property int headerH: 30
                 readonly property int listH: foundCol.implicitHeight + 8
@@ -431,8 +389,8 @@ FocusScope {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        enabled: root.powered
+                        cursorShape: (root.powered && root.btAvailable) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        enabled: root.powered && root.btAvailable
                         propagateComposedEvents: true
                         onEntered: root.keepPanelHovered()
                         onExited:  root.releasePanelHover()
@@ -456,8 +414,9 @@ FocusScope {
                         spacing: 2
 
                         Repeater {
-                            model: foundModel
+                            model: root.discoveredDevices
                             delegate: Rectangle {
+                                required property var modelData
                                 width: parent.width
                                 height: 30
                                 radius: 8
@@ -471,18 +430,29 @@ FocusScope {
                                     spacing: 10
 
                                     Text { width: 16; height: parent.height; text: "󰂲"; color: root.muted; font.pixelSize: 14; verticalAlignment: Text.AlignVCenter }
-                                    Text { height: parent.height; text: model.name; color: root.text; font.pixelSize: 12; verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight; width: parent.width - 30 }
+
+                                    Text {
+                                        height: parent.height
+                                        text: (modelData.name && modelData.name.length) ? modelData.name
+                                              : (modelData.deviceName && modelData.deviceName.length) ? modelData.deviceName
+                                              : modelData.address
+                                        color: root.text
+                                        font.pixelSize: 12
+                                        verticalAlignment: Text.AlignVCenter
+                                        elide: Text.ElideRight
+                                        width: parent.width - 30
+                                    }
                                 }
 
                                 MouseArea {
                                     anchors.fill: parent
                                     hoverEnabled: true
-                                    cursorShape: (root.powered && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
-                                    enabled: root.powered && !root.actionRunning
+                                    cursorShape: (root.powered && root.btAvailable && !root.actionRunning) ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    enabled: root.powered && root.btAvailable && !root.actionRunning
                                     propagateComposedEvents: true
                                     onEntered: { parent.hovered = true; root.keepPanelHovered() }
                                     onExited:  { parent.hovered = false; root.releasePanelHover() }
-                                    onClicked: root.pairAndConnect(model.mac)
+                                    onClicked: root.pairAndConnect(modelData)
                                 }
                             }
                         }
@@ -492,113 +462,7 @@ FocusScope {
         }
     }
 
-    Process {
-        id: actionProc
-        stdout: StdioCollector {
-            waitForEnd: true
-            onStreamFinished: {
-                var out = (this.text || "")
-                var m = out.match(/__EC:(\d+)/)
-                var ec = m ? parseInt(m[1], 10) : 999
-
-                root.actionRunning = false
-
-                if (ec === 0) {
-                    root.lastError = ""
-                    root.refreshSoon()
-                    return
-                }
-
-                if (root._actionKind === "scanOff") {
-                    root.lastError = ""
-                    return
-                }
-
-                root.lastError = root.formatBtError(out, ec)
-
-                if (root._actionKind === "connect" && root._actionMac.length) {
-                    var idx = root.modelIndexByMac(pairedModel, root._actionMac)
-                    if (idx >= 0) {
-                        var cur = pairedModel.get(idx).connected
-                        pairedModel.setProperty(idx, "connected", !cur)
-                    }
-                }
-
-                root.refreshSoon()
-            }
-        }
-    }
-
-    Process {
-        id: statusProc
-        command: ["sh", "-lc", root.btctlPath + " status"]
-
-        stdout: StdioCollector {
-            waitForEnd: true
-            onStreamFinished: {
-                var raw = this.text
-                if (!raw) return
-
-                var newFoundLocal = []
-                var seenPaired = {}
-
-                var lines = raw.split("\n")
-                for (var i = 0; i < lines.length; i++) {
-                    var line = (lines[i] || "").trim()
-                    if (!line.length) continue
-
-                    var parts = line.split("|")
-                    var tag = parts[0]
-
-                    if (tag === "POWER") {
-                        root.powered = (parts[1] === "yes")
-                        if (!root.powered) {
-                            root.scanning = false
-                            scanTick.stop()
-                            clearDiscovered()
-                        }
-                        continue
-                    }
-
-                    if (tag === "PAIRED") {
-                        var macP = (parts[1] || "").trim()
-                        var connP = (parts[2] === "yes")
-                        var nameP = (parts.slice(3).join("|") || "").trim()
-                        if (!macP.length) continue
-                        seenPaired[macP] = true
-                        root.upsertPaired(macP, connP, nameP)
-                        continue
-                    }
-
-                    if (tag === "FOUND") {
-                        var macF = (parts[1] || "").trim()
-                        var nameF = (parts.slice(2).join("|") || "").trim()
-                        if (!macF.length) continue
-                        if (!nameF.length) nameF = macF
-                        newFoundLocal.push({ mac: macF, name: nameF })
-                        continue
-                    }
-                }
-
-                for (var j = pairedModel.count - 1; j >= 0; j--) {
-                    var mP = pairedModel.get(j).mac
-                    if (!seenPaired[mP]) pairedModel.remove(j)
-                }
-
-                if (root.powered && root.scanning) {
-                    var map = root._foundMap || {}
-                    for (var k = 0; k < newFoundLocal.length; k++) {
-                        var d = newFoundLocal[k]
-                        map[d.mac] = d.name
-                    }
-                    root.setFoundMap(map)
-                }
-            }
-        }
-    }
-
     Component.onCompleted: {
         root.focus = true
-        root.refresh()
     }
 }
