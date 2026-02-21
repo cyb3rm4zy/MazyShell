@@ -40,6 +40,7 @@ A powerful yet simple UI overlay made for Hyprland, Niri, and Sway
 ### Power Suite
 - `upower` (Read battery values)
 - `power-profiles-daemon` and/or `asusctl` (Power mode switcher(s))
+#### Quick Command
 ```
 paru -S quickshell-git sunsetr swaylock brightnessctl wireguard-tools networkmanager bluez btop upower power-profiles-daemon ttf-jetbrains-mono-nerd pipewire pipewire-pulse wireplumber xdgdesktopportal
 ```
