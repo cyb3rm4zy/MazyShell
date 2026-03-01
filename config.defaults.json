@@ -19,7 +19,7 @@
     "edgeWidth": 8,
     "edgeCornerRadius": 20,
     "sidebarWidth": 300,
-    "hoverCloseDelayMs": 300,
+    "hoverCloseDelayMs": 150,
     "edgeByScreen": { "DP-2": "right", "DP-3": "left" }
   },
   "bar": {

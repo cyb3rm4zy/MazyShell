@@ -118,6 +118,7 @@ Item {
             BluetoothSuite { width: col.width; config: root.config; sidebarState: root.sidebarState }
             NetworkSuite   { width: col.width; config: root.config; sidebarState: root.sidebarState }
             VPNSuite       { width: col.width; config: root.config; sidebarState: root.sidebarState }
+            SSHSuite       { width: col.width; config: root.config; sidebarState: root.sidebarState }
             DGPUSuite      { width: col.width; config: root.config; sidebarState: root.sidebarState }
             PowerSuite     { width: col.width; config: root.config; sidebarState: root.sidebarState }
         }

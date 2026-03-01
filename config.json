@@ -62,7 +62,7 @@
     },
     "edgeCornerRadius": 20,
     "edgeWidth": 8,
-    "hoverCloseDelayMs": 300,
+    "hoverCloseDelayMs": 150,
     "sidebarWidth": 300
   }
 }
